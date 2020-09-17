@@ -157,20 +157,9 @@ def draw_bounding_box_on_image(image,
   if use_normalized_coordinates:
     (left, right, top, bottom) = (xmin * im_width, xmax * im_width,
                                   ymin * im_height, ymax * im_height)
-    #bong
-    bbox = (left, top, right, bottom)
-    crop_img = image.crop(bbox)
-    crop_img.save("./test_image/test" + str(IMAGE_NUM) + ".jpg")
-    IMAGE_NUM += 1
-
   else:
     (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
-    #bong
-    bbox = (left, top, right, bottom)
-    crop_img = image.crop(bbox)
-    crop_img.save("./test_image/test" + str(IMAGE_NUM) + ".jpg")
-    IMAGE_NUM += 1
-
+  
   draw.line([(left, top), (left, bottom), (right, bottom),
              (right, top), (left, top)], width=thickness, fill=color)
   try:
@@ -404,9 +393,10 @@ def visualize_boxes_and_labels_on_image_array(image,
                                               keypoints=None,
                                               use_normalized_coordinates=False,
                                               max_boxes_to_draw=20,
-                                              min_score_thresh=.5,
-                                              agnostic_mode=False,
-                                              line_thickness=4):
+                                              min_score_thresh=.2,
+                                              agnostic_mode=True,
+                                              line_thickness=2):
+  #분류기가 아닌 사물 전체를 인식하기 위해 min_score_thresh를 올린다.
   """Overlay labeled boxes on an image with formatted scores and label names.
 
   This function groups boxes that correspond to the same location
@@ -443,6 +433,7 @@ def visualize_boxes_and_labels_on_image_array(image,
   """
   # Create a display string (and color) for every box location, group any boxes
   # that correspond to the same location.
+  global IMAGE_NUM
   box_to_display_str_map = collections.defaultdict(list)
   box_to_color_map = collections.defaultdict(str)
   box_to_instance_masks_map = {}
@@ -476,9 +467,27 @@ def visualize_boxes_and_labels_on_image_array(image,
           box_to_color_map[box] = STANDARD_COLORS[
               classes[i] % len(STANDARD_COLORS)]
 
-  # Draw all boxes onto image.
+  # Cropped the Image.
   for box, color in box_to_color_map.items():
     ymin, xmin, ymax, xmax = box
+    image_pil = Image.fromarray(np.uint8(image)).convert('RGB')
+    im_width, im_height = image_pil.size
+    if use_normalized_coordinates:
+        (left, right, top, bottom) = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
+        bbox = (left, top, right, bottom)
+        crop_img = image_pil.crop(bbox)
+        crop_img.save("./test_image/test" + str(IMAGE_NUM) + ".jpg")
+        IMAGE_NUM += 1
+    else:
+        (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
+        bbox = (left, top, right, bottom)
+        crop_img = image_pil.crop(bbox)
+        crop_img.save("./text_image/test" + str(IMAGE_NUM) + ".jpg")
+        IMAGE_NUM += 1
+
+  # Draw all boxes onto image.
+
+  for box, color in box_to_color_map.items():
     if instance_masks is not None:
       draw_mask_on_image_array(
           image,
