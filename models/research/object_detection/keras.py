@@ -10,9 +10,12 @@ import matplotlib.pyplot as plt
 import PIL.Image as pil
 import os.path
 import time
+import cv2
 from tensorflow.compat.v1.keras import backend as K
 
+#데이터 폴더의 이미지를 LOADING 한다.
 data_folder = "./test_image/"
+MINIMUM_IMAGE_NUM = 501
 
 #훈련중인 모델을 저장할 경로와 파일 이름
 checkpoint_path = 'model'
@@ -23,15 +26,23 @@ train_labels = []
 test_images = []
 test_labels = []
 
-batch_size = 5000
-num_classes = 10
-epochs = 1
+#우리가 분류해야될 물품의 목록을 모아놓는다.
+class_names = [
+    'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy'
+]
+dict_class_names = None
+
+batch_size = 1500
+num_classes = len(class_names)
+epochs = 10
 model = []
+#각 훈련 집합마다 accuracy를 측정하여 가장 높은 정확도를 가지는 모델을 가지고 있는다.
 global_accuracy = 0.0
 
-class_names = [
-    'Airplane', 'Car', 'Birs', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse', 'Ship','Truck'
-]
+#class_names의 list를 0, 1, 2.... 숫자 label로 바꾼다
+def list_to_dictionary():
+    global dict_class_names
+    dict_class_names = {class_names[i] : i for i in range(0, len(class_names))}
 
 #우리가 모아놓은 폴더에서 image와 label를 load한다.
 #데이터에 맞게 label를 load해야 한다. ex) 의자 : 0, 과자 : 1, 핸드폰 : 2....
@@ -41,9 +52,19 @@ def load_data():
     global test_images
     global test_labels
 
-    cifar_mnist = datasets.cifar10
-    (train_images, train_labels), (test_images, test_labels) = cifar_mnist.load_data()
-
+    #label를 위한 키 값 정리
+    list_to_dictionary() 
+    #훈련 데이터 평균 size 하기
+    #훈련 데이터 및 label 정의하기
+    
+    (width, height) = data_img_size()
+    train_data_img(width, height)   
+    data_shuffle()
+    
+    #cifar_mnist = datasets.cifar10
+    #(train_images, train_labels), (test_images, test_labels) = cifar_mnist.load_data()
+    #print(train_labels)
+    '''
     train_images = np.array(train_images, dtype = np.float32)
     train_images = train_images / 255
 
@@ -53,7 +74,72 @@ def load_data():
     train_labels = utils.to_categorical(train_labels, num_classes)
     test_labels = utils.to_categorical(test_labels, num_classes)
 
+    print('-------------------------------------------------')
+    print(train_labels.shape)
+    '''
+    print('\n\n\nTraining Start\n\n\n')
+    #one-hot 인코딩을 위해 범주형 변수를 변환시킨다
+    train_labels = utils.to_categorical(train_labels, num_classes)
+    #훈련 시작
     split_data_and_train_validate(train_images, train_labels)
+    
+
+#image 의 사이즈를 구한다.
+def data_img_size():
+    global MINIMUM_IMAGE_NUM
+    width = 0
+    height = 0
+    total_num = 0
+
+    for class_folder in class_names:
+        for image_seq in range(MINIMUM_IMAGE_NUM):
+            filename = data_folder + class_folder + '/' + class_folder + str(image_seq) + '.jpg' 
+            if os.path.exists(filename) == False:
+                continue
+            img = cv2.imread(filename)
+            img = list(img)
+            width += len(img)
+            height += len(img[0])
+            total_num += 1
+    
+    width = width / total_num
+    height = height / total_num
+    width = int(width)
+    height = int(height)
+    return (width, height)
+
+#train data를 넣는다.
+def train_data_img(width, height):
+    global train_images
+    global train_labels
+    global MINIMUM_IMAGE_NUM
+
+    for class_folder in class_names:
+        for image_seq in range(MINIMUM_IMAGE_NUM):
+            filename = data_folder + class_folder + '/' + class_folder + str(image_seq) + '.jpg' 
+            if os.path.exists(filename) == False:
+                continue
+            img = cv2.imread(filename)
+            img = cv2.resize(img, dsize=(width, height), interpolation=cv2.INTER_AREA)
+            img = list(img)
+            train_images.append(img)
+            tmp = []
+            tmp.append(dict_class_names[class_folder])
+            train_labels.append(tmp)
+    
+    train_images = np.array(train_images)
+    train_labels = np.array(train_labels)
+
+#순서대로 데이터 집합을 나눌때, random하게 데이터가 들어가게 하기 위해 shuffle 한다.
+def data_shuffle():
+    global train_images
+    global train_labels
+
+    for_shuffle = np.arange(len(train_images))
+    np.random.shuffle(for_shuffle)
+
+    train_images = train_images[for_shuffle]
+    train_labels = train_labels[for_shuffle]
 
 #train_data, validate_data, test_data를 random 하게 나눈다.
 def split_data_and_train_validate(train_images, train_labels):
