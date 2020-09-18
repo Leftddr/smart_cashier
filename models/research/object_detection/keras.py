@@ -39,7 +39,7 @@ dict_class_names = None
 
 batch_size = 1000
 num_classes = len(class_names)
-epochs = 15
+epochs = 10
 model = []
 final_model = None
 #각 훈련 집합마다 accuracy를 측정하여 가장 높은 정확도를 가지는 모델을 가지고 있는다.
