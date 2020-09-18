@@ -476,14 +476,16 @@ def visualize_boxes_and_labels_on_image_array(image,
         (left, right, top, bottom) = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
         bbox = (left, top, right, bottom)
         crop_img = image_pil.crop(bbox)
-        crop_img.save("./test_image/test" + str(IMAGE_NUM) + ".jpg")
+        crop_img.save("./test_image/skippy/skippy" + str(IMAGE_NUM) + ".jpg")
         IMAGE_NUM += 1
+        print(IMAGE_NUM)
     else:
         (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
         bbox = (left, top, right, bottom)
         crop_img = image_pil.crop(bbox)
-        crop_img.save("./text_image/test" + str(IMAGE_NUM) + ".jpg")
+        crop_img.save("./text_image/skippy/skippy" + str(IMAGE_NUM) + ".jpg")
         IMAGE_NUM += 1
+        print(IMAGE_NUM)
 
   # Draw all boxes onto image.
 
