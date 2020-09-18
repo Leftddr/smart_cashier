@@ -28,11 +28,16 @@ test_labels = []
 
 #우리가 분류해야될 물품의 목록을 모아놓는다.
 class_names = [
-    'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy'
+    'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy', 'BlackCap', 'CanBeer', 'doritos',
+    'Glasses', 'lighter', 'mountaindew', 'pepsi', 'Spoon',  'tobacco', 'WhiteCap'
+]
+
+test_names = [
+    'testsetA',
 ]
 dict_class_names = None
 
-batch_size = 1500
+batch_size = 100
 num_classes = len(class_names)
 epochs = 10
 model = []
@@ -59,11 +64,12 @@ def load_data():
     
     (width, height) = data_img_size()
     train_data_img(width, height)   
+    test_data_img(width, height)
     data_shuffle()
     
     #cifar_mnist = datasets.cifar10
     #(train_images, train_labels), (test_images, test_labels) = cifar_mnist.load_data()
-    #print(train_labels)
+    #print(test_images.shape)
     '''
     train_images = np.array(train_images, dtype = np.float32)
     train_images = train_images / 255
@@ -107,6 +113,21 @@ def data_img_size():
     width = int(width)
     height = int(height)
     return (width, height)
+
+def test_data_img(width, height):
+    global test_images
+
+    for class_folder in test_names:
+        for image_seq in range(2):
+            filename = class_folder + '/' + class_folder + str(image_seq) + '.jpg' 
+            if os.path.exists(filename) == False:
+                continue
+            img = cv2.imread(filename)
+            img = cv2.resize(img, dsize=(width, height), interpolation=cv2.INTER_AREA)
+            img = list(img)
+            test_images.append(img)
+    
+    test_images = np.array(test_images)
 
 #train data를 넣는다.
 def train_data_img(width, height):
@@ -181,6 +202,18 @@ def train_model(train_data_set, train_data_label):
         batch_model.model_compile()
         batch_model.model_fit(train_data, train_data_label[idx])
         model.append(batch_model)
+
+def output_result(test_images):
+    global model
+    global class_names
+
+    predictions = np.zeros(1 * num_classes).reshape(1, num_classes)
+
+    for idx, md in enumerate(model):
+        p = md.predictions(test_images)
+        predictions += p
+
+    print(class_names[tf.compat.v1.argmax(predictions, 1)[0]])
 
 def validate(valid_data, valid_label):
     #accuracy를 측정하여 정확도를 비교한다.
@@ -294,7 +327,9 @@ class Model():
 
 
 if __name__ == "__main__":
+    #global global_accuracy
     load_data()
+    output_result(test_images)
 '''
 for i in range(0, total_image_num):
     batch_model = Model(str(i))
