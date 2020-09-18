@@ -37,10 +37,11 @@ test_names = [
 ]
 dict_class_names = None
 
-batch_size = 100
+batch_size = 1000
 num_classes = len(class_names)
-epochs = 10
+epochs = 15
 model = []
+final_model = None
 #각 훈련 집합마다 accuracy를 측정하여 가장 높은 정확도를 가지는 모델을 가지고 있는다.
 global_accuracy = 0.0
 
@@ -166,6 +167,8 @@ def data_shuffle():
 def split_data_and_train_validate(train_images, train_labels):
     global batch_size
     global global_accuracy
+    global final_model
+    global model
     #batch_size로 나눌 수 있는 전체 data_set 개수
     data_set_len = int(len(train_images) / batch_size)
 
@@ -189,8 +192,10 @@ def split_data_and_train_validate(train_images, train_labels):
         #모델의 정확도가 높으면, 이 모델을 저장한다.
         print('accuracy : ' + str(accuracy))
         if accuracy > global_accuracy:
+            final_model = model
             model_save()
             global_accuracy = accuracy
+        model = []
 
 
 def train_model(train_data_set, train_data_label):
@@ -204,12 +209,12 @@ def train_model(train_data_set, train_data_label):
         model.append(batch_model)
 
 def output_result(test_images):
-    global model
+    global final_model
     global class_names
 
     predictions = np.zeros(1 * num_classes).reshape(1, num_classes)
 
-    for idx, md in enumerate(model):
+    for idx, md in enumerate(final_model):
         p = md.predictions(test_images)
         predictions += p
 
@@ -242,7 +247,7 @@ def model_save():
     global checkpoint_dir
     global checkpoint_path
     #전체 모델의 가중치를 저장한다.
-    for idx, md in enumerate(model):
+    for idx, md in enumerate(final_model):
         md.model.save_weights(checkpoint_dir + checkpoint_path + str(idx))
     
     #model를 reuse하기 위해 초기화 한다.
