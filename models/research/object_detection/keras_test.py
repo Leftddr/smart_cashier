@@ -21,7 +21,7 @@ MININUM_TEST_NUM = 10
 #훈련된 weight를 저장한 경로와 파일 이름
 checkpoint_path = "model"
 checkpoint_dir = "./checkpoints/"
-checkpoint_num = 5
+checkpoint_num = 13
 
 #이미지 정보 저장
 width = 0
@@ -83,7 +83,7 @@ def load_test_img():
             if os.path.exists(filename) == False:
                 continue
             img = cv2.imread(filename)
-            img = cv2.resize(img, dsize = (width, height), interpolation = cv2.INTER_AREA)
+            img = cv2.resize(img, dsize = (height, width), interpolation = cv2.INTER_AREA)
             img = list(img)
             test_images.append(img)
     
@@ -196,6 +196,7 @@ class Model():
         self.num_classes = num_classes
     
     def make_model(self, drop_out = .25):
+        print(width, height)
         self.model = keras.Sequential([
             Conv2D(32, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
@@ -225,9 +226,13 @@ class Model():
     
     def load_weights(self):
         self.model.load_weights(checkpoint_dir + checkpoint_path + str(self.name))
+
+    def predictions(self, test_images):
+        return self.model.predict(test_images)
     
 if __name__ == "__main__":
     load_img_size()
     load_test_img()
     load_model()
+    output_result()
 
