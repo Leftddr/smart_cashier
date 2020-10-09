@@ -13,6 +13,8 @@ import time
 import cv2
 from tensorflow.compat.v1.keras import backend as K
 
+tf.compat.v1.disable_eager_execution()
+
 #test이미지가 저장되어 있는 폴더
 data_folder = "./test_image"
 img_size_file = "img_size.txt"
@@ -41,7 +43,7 @@ class_prices = [
 
 #test이미지의 저장된 이름
 test_names = [
-    'testsetA',
+    'testset',
 ]
 
 #load된 model를 저장할 곳
@@ -72,14 +74,16 @@ def load_img_size():
 
     return (width, height)
 
-def load_test_img():
+def load_test_img(folder_num):
     global test_images
     global test_names
+
+    test_images = []
 
     (width, height) = load_img_size()
     for test_folders in test_names:
         for image_seq in range(MININUM_TEST_NUM + 1):
-            filename = test_folders + '/' + test_folders + str(image_seq) + '.jpg'
+            filename = test_folders + str(folder_num) + '/' + test_folders + str(image_seq) + '.jpg'
             if os.path.exists(filename) == False:
                 continue
             img = cv2.imread(filename)
@@ -95,7 +99,7 @@ def load_model():
     for idx in range(checkpoint_num):
         md = Model(str(idx))
         md.make_model()
-        #md.model_compile()
+        md.model_compile()
         md.load_weights()
         test_model.append(md)
 
@@ -104,7 +108,9 @@ def output_result():
     global class_names
     global result_labels
     global result_labels_set
-    global test_iamges
+    global test_images
+
+    dict_for_result = {}
  
     for img in test_images:
         test_img = []
@@ -112,11 +118,12 @@ def output_result():
         test_img = np.array(test_img) 
         #여러개의 품목이 있을 수 있으므로 DICTIONARY 형태로 저장해 놓는다.
         #과자 : 1개, 음료수 : 2개.... 이런식으로 저장한다. (한 test 이미지 당)
-        dict_for_result = {}
         predictions = np.zeros(1 * num_classes).reshape(1, num_classes)
 
         for idx, md in enumerate(test_model):
-            p = md.predictions(test_img)
+            graph = tf.compat.v1.get_default_graph()
+            with graph.as_default():
+                p = md.predictions(test_img)
             predictions += p
 
         index = np.argmax(predictions)
@@ -196,13 +203,12 @@ class Model():
         self.num_classes = num_classes
     
     def make_model(self, drop_out = .25):
-        print(width, height)
         self.model = keras.Sequential([
-            Conv2D(32, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
+            Conv2D(16, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
-            Conv2D(64, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
+            Conv2D(32, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
@@ -227,12 +233,15 @@ class Model():
     def load_weights(self):
         self.model.load_weights(checkpoint_dir + checkpoint_path + str(self.name))
 
-    def predictions(self, test_images):
-        return self.model.predict(test_images)
-    
+    def predictions(self, test_image):
+        return self.model.predict(test_image)
+
+'''
 if __name__ == "__main__":
     load_img_size()
-    load_test_img()
+    load_test_img(0)
     load_model()
     output_result()
+'''
+
 

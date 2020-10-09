@@ -30,9 +30,11 @@ import PIL.ImageFont as ImageFont
 import six
 import tensorflow as tf
 import os
+import shutil
+import keras_test as kt
 
 IMAGE_NUM = 0
-TEST_NUMBER = 0
+FOLDER_NUMBER = 0
 _TITLE_LEFT_MARGIN = 10
 _TITLE_TOP_MARGIN = 10
 STANDARD_COLORS = [
@@ -481,9 +483,11 @@ def visualize_boxes_and_labels_on_image_array(image,
 
   # Cropped the Image.
   # 이제는 test_image의 폴더가 아니라 read test folder에 데이터를 넣어놓는다.
-  TEST_FOLDER = 'test_image' + str(TEST_NUMBER)
-  if os.path.exists(TEST_FOLDER) == False:
-    os.makedirs(TEST_FOLDER)
+  path_test_folder = "C:/Users/chltj/Desktop/smart_cashier/models/research/object_detection/"
+  TEST_FOLDER = 'testset'
+  path_test_folder = path_test_folder + TEST_FOLDER +str(TEST_NUMBER)
+  if os.path.exists(path_test_folder) == False:
+    os.makedirs(path_test_folder)
 
   for box, color in box_to_color_map.items():
     ymin, xmin, ymax, xmax = box
@@ -493,13 +497,13 @@ def visualize_boxes_and_labels_on_image_array(image,
         (left, right, top, bottom) = (xmin * im_width, xmax * im_width, ymin * im_height, ymax * im_height)
         bbox = (left, top, right, bottom)
         crop_img = image_pil.crop(bbox)
-        crop_img.save(TEST_FOLDER + '/' + str(IMAGE_NUM) + ".jpg")
+        crop_img.save(path_test_folder + '/' + TEST_FOLDER + str(IMAGE_NUM) + ".jpg")
         IMAGE_NUM += 1
     else:
         (left, right, top, bottom) = (xmin, xmax, ymin, ymax)
         bbox = (left, top, right, bottom)
         crop_img = image_pil.crop(bbox)
-        crop_img.save(TEST_FOLDER + '/' + str(IMAGE_NUM) + ".jpg")
+        crop_img.save(path_test_folder + '/' + TEST_FOLDER + str(IMAGE_NUM) + ".jpg")
         IMAGE_NUM += 1
   
   #TEST_FOLDER의 값을 하나 증가시킨다.

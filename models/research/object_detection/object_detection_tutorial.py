@@ -11,12 +11,18 @@ import sys
 import tarfile
 import tensorflow as tf
 import cv2
+import keras_test as kt
  
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
  
 from utils import label_map_util
 from utils import visualization_utils as vis_util
+import shutil
+
+#test_path_folder 경로를 적는다.
+path_test_folder = "C:/Users/chltj/Desktop/smart_cashier/models/research/object_detection/"
+TEST_FOLDER = "testset"
 
 tf.compat.v1.reset_default_graph()
 tf.compat.v1.get_default_graph()
@@ -61,6 +67,9 @@ def load_image_into_numpy_array(image):
   
 # Size, in inches, of the output images.
 IMAGE_SIZE = (12, 8)
+
+kt.load_img_size()
+kt.load_model()
  
 with detection_graph.as_default():
     with tf.device("/gpu:0"):
@@ -70,6 +79,9 @@ with detection_graph.as_default():
                 key = input("캡처를 원하는 숫자를 누르세요 : ")
                 reset_test_number = True
                 for num in range(0, int(key)):
+                    #폴더를 삭제한다.
+                    if os.path.exists(path_test_folder + TEST_FOLDER + str(num)):
+                        shutil.rmtree(path_test_folder + TEST_FOLDER + str(num))
                     ret_val, image = cam.read()
                     
                     if ret_val:
@@ -105,6 +117,11 @@ with detection_graph.as_default():
                                 reset_test_number=reset_test_number)
                         
                         cv2.imshow('my webcam', image)
+
+                        #이미지를 올리고 test하기 위한 코드
+                        kt.load_test_img(num)
+                        kt.output_result()
+                        input("Enter")
                         
                         if cv2.waitKey(1) == 27: 
                             break  # esc to quit
