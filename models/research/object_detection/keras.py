@@ -110,13 +110,15 @@ def load_data():
     #one-hot 인코딩을 위해 범주형 변수를 변환시킨다
     train_labels = utils.to_categorical(train_labels, num_classes)
     #훈련 시작
-    #split_data_and_train_validate(train_images, train_labels)
+    split_data_and_train_validate(train_images, train_labels)
     #훈련된 모델을 load시킨다.
+    '''
     for idx in range(0, 5):
         md = Model(str(idx))
         #이 코드가 model에 맞는 훈련된 weights를 load 시킨다.
         md.load_weights()
         final_model.append(md)
+    '''
     
 
 #image 의 사이즈를 구한다.
