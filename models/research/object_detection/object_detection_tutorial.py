@@ -11,7 +11,6 @@ import sys
 import tarfile
 import tensorflow as tf
 import cv2
-import keras_test as kt
  
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
@@ -21,7 +20,7 @@ from utils import visualization_utils as vis_util
 import shutil
 
 #test_path_folder 경로를 적는다.
-path_test_folder = "C:/Users/chltj/Desktop/smart_cashier/models/research/object_detection/"
+path_test_folder = "C:/Users/lg/Desktop/receive/models/research/object_detection/"
 TEST_FOLDER = "testset"
 
 tf.compat.v1.reset_default_graph()
@@ -67,9 +66,6 @@ def load_image_into_numpy_array(image):
   
 # Size, in inches, of the output images.
 IMAGE_SIZE = (12, 8)
-
-kt.load_img_size()
-kt.load_model()
  
 with detection_graph.as_default():
     with tf.device("/gpu:0"):
@@ -114,14 +110,10 @@ with detection_graph.as_default():
                                 category_index,
                                 use_normalized_coordinates=True,
                                 line_thickness=8,
-                                reset_test_number=reset_test_number)
+                                reset_test_number=reset_test_number,
+                                end_num=int(key))
                         
                         cv2.imshow('my webcam', image)
-
-                        #이미지를 올리고 test하기 위한 코드
-                        kt.load_test_img(num)
-                        kt.output_result()
-                        input("Enter")
                         
                         if cv2.waitKey(1) == 27: 
                             break  # esc to quit

@@ -37,6 +37,8 @@ IMAGE_NUM = 0
 FOLDER_NUMBER = 0
 _TITLE_LEFT_MARGIN = 10
 _TITLE_TOP_MARGIN = 10
+INITIAL_LOAD_MODEL = True
+
 STANDARD_COLORS = [
     'AliceBlue', 'Chartreuse', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque',
     'BlanchedAlmond', 'BlueViolet', 'BurlyWood', 'CadetBlue', 'AntiqueWhite',
@@ -401,7 +403,9 @@ def visualize_boxes_and_labels_on_image_array(image,
                                               agnostic_mode=True,
                                               line_thickness=2,
                                               #test_number를 reset할지 결정한다.
-                                              reset_test_number=False):
+                                              reset_test_number=False,
+                                              #마지막에 결정을 해야하기 때문에 넣어놓는다.
+                                              end_num=10):
   #분류기가 아닌 사물 전체를 인식하기 위해 min_score_thresh를 올린다.
   """Overlay labeled boxes on an image with formatted scores and label names.
 
@@ -442,6 +446,8 @@ def visualize_boxes_and_labels_on_image_array(image,
   global IMAGE_NUM
   #TEST FOLDER를 위한 NUMBER를 저장한다.
   global TEST_NUMBER
+  #처음 MODEL을 초기화 시켜주기 위한 코드
+  global INITIAL_LOAD_MODEL
   #TEST NUMBER 초기화한다.
   #IMAGE_NUM도 같이 초기화한다.
   if reset_test_number == True:
@@ -483,7 +489,7 @@ def visualize_boxes_and_labels_on_image_array(image,
 
   # Cropped the Image.
   # 이제는 test_image의 폴더가 아니라 read test folder에 데이터를 넣어놓는다.
-  path_test_folder = "C:/Users/chltj/Desktop/smart_cashier/models/research/object_detection/"
+  path_test_folder = "C:/Users/lg/Desktop/receive/models/research/object_detection/"
   TEST_FOLDER = 'testset'
   path_test_folder = path_test_folder + TEST_FOLDER +str(TEST_NUMBER)
   if os.path.exists(path_test_folder) == False:
@@ -536,6 +542,22 @@ def visualize_boxes_and_labels_on_image_array(image,
           color=color,
           radius=line_thickness / 2,
           use_normalized_coordinates=use_normalized_coordinates)
+
+  #여기서부터는 MODEL를 끌어올리고 TEST하는 코드이다.
+  kt.load_img_size()
+  #INITIAL_LOAD_MODEL을 통해 한번만 MODEL를 끌어올린다.
+  if INITIAL_LOAD_MODEL == True:
+    kt.load_model()
+    INITIAL_LOAD_MODEL = False
+  
+  kt.load_test_img(TEST_NUMBER - 1)
+  kt.output_result()
+  
+  if TEST_NUMBER == end_num:
+    #투표를 위한 코드 및 계산 직전 사용 코드
+    kt.prev_calculate_price()
+    #최종 계산을 위한 코드
+    kt.calculate_price()
 
   return image
 

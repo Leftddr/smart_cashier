@@ -11,9 +11,12 @@ import PIL.Image as pil
 import os.path
 import time
 import cv2
+import json
 from tensorflow.compat.v1.keras import backend as K
 
 tf.compat.v1.disable_eager_execution()
+tf.compat.v1.reset_default_graph()
+tf.compat.v1.get_default_graph()
 
 #test이미지가 저장되어 있는 폴더
 data_folder = "./test_image"
@@ -129,7 +132,7 @@ def output_result():
         index = np.argmax(predictions)
         #물건 이름을 우선 print해서 출력한다.
         thing_name = class_names[index]
-        print(thing_name)
+        #print(thing_name)
         
         #우선 이미 품목이 있는지 검사한다.
         if dict_for_result.get(index):
@@ -183,9 +186,17 @@ def calculate_price():
     global final_result_labels
     global final_result_count
 
+    result_dict = {}
+
     sum = 0
     for index, count in zip(final_result_labels, final_result_count):
         sum += (class_prices[index] * count)
+        #json file로 dump하기 위한 코드
+        #미래에 server에서 사용한다.
+        result_dict[class_names[index]] = count
+    
+    with open("product_file.json", "w") as json_file:
+        json.dump(result_dict, json_file)
     
     print('최종 가격 : ' + str(sum))
 
@@ -236,12 +247,11 @@ class Model():
     def predictions(self, test_image):
         return self.model.predict(test_image)
 
-'''
 if __name__ == "__main__":
     load_img_size()
     load_test_img(0)
     load_model()
     output_result()
-'''
+
 
 
