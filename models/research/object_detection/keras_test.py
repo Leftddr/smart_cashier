@@ -114,6 +114,7 @@ def output_result():
     global test_images
 
     dict_for_result = {}
+    qurom = len(test_model) * 0.5
  
     for img in test_images:
         test_img = []
@@ -127,11 +128,17 @@ def output_result():
             graph = tf.compat.v1.get_default_graph()
             with graph.as_default():
                 p = md.predictions(test_img)
+            index = np.argmax(p)
+            if p[0][index] < .5:
+                break
             predictions += p
 
         index = np.argmax(predictions)
+        if predictions[0][index] < qurom:
+            continue
         #물건 이름을 우선 print해서 출력한다.
         thing_name = class_names[index]
+        print(thing_name)
         #print(thing_name)
         
         #우선 이미 품목이 있는지 검사한다.
