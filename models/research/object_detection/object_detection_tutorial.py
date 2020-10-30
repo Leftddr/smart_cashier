@@ -72,7 +72,8 @@ with detection_graph.as_default():
         with tf.compat.v1.Session(graph=detection_graph) as sess:
             cam = cv2.VideoCapture(0)
             while True:
-                key = input("캡처를 원하는 숫자를 누르세요 : ")
+                #key = input("캡처를 원하는 숫자를 누르세요 : ")
+                key = 10
                 reset_test_number = True
                 for num in range(0, int(key)):
                     #폴더를 삭제한다.
@@ -119,3 +120,4 @@ with detection_graph.as_default():
                             break  # esc to quit
 
                 cv2.destroyAllWindows()
+                break
