@@ -16,7 +16,7 @@ def result():
 @app.route('/run')
 def run():
     #odt 모듈에 들어있는 calculate함수를 사용하므로써 계산 속도를 높인다.
-    odt.calculate()
+    odt.calculate(False)
     product_result = None
     with open("product_file.json", "r") as pt_json:
         product_result = json.load(pt_json)
