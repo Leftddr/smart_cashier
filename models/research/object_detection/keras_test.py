@@ -16,8 +16,7 @@ from tensorflow.compat.v1.keras import backend as K
 
 tf.compat.v1.disable_eager_execution()
 tf.compat.v1.reset_default_graph()
-tf.compat.v1.get_default_graph()
-
+sess = tf.compat.v1.Session()
 #test이미지가 저장되어 있는 폴더
 data_folder = "./test_image"
 img_size_file = "img_size.txt"
@@ -100,7 +99,9 @@ def load_test_img(folder_num):
 
 def load_model():
     global test_model
-
+    global sess
+    
+    K.set_session(sess)
     for idx in range(checkpoint_num):
         md = Model(str(idx))
         md.make_model()
@@ -117,7 +118,7 @@ def output_result():
 
     dict_for_result = {}
     qurom = len(test_model) * 0.5
- 
+
     for img in test_images:
         test_img = []
         test_img.append(img)
@@ -127,9 +128,7 @@ def output_result():
         predictions = np.zeros(1 * num_classes).reshape(1, num_classes)
 
         for idx, md in enumerate(test_model):
-            graph = tf.compat.v1.get_default_graph()
-            with graph.as_default():
-                p = md.predictions(test_img)
+            p = md.predictions(test_img)
             index = np.argmax(p)
             if p[0][index] < .5:
                 break
@@ -179,7 +178,6 @@ def prev_calculate_price():
                     dict_for_item_count[test[item]] += 1
                 else:
                     dict_for_item_count[test[item]] = 0
-        
         if quorm >= vote:
             final_result_labels.append(item)
             sort_item_count = sorted(dict_for_item_count.items(), reverse = True, key = lambda item : item[1])
@@ -222,6 +220,8 @@ class Model():
     global checkpoint_dir
     global checkpoint_path
     global num_classes
+    global sess
+    global graph
 
     def __init__(self, name):
         self.name = name
@@ -229,11 +229,11 @@ class Model():
     
     def make_model(self, drop_out = .25):
         self.model = keras.Sequential([
-            Conv2D(16, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
+            Conv2D(32, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
-            Conv2D(32, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
+            Conv2D(64, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
@@ -248,7 +248,6 @@ class Model():
         if self.model == None:
             print('There is no model')
             return
-        
         self.model.compile(
             loss = 'categorical_crossentropy',
             optimizer = 'adam',
@@ -259,6 +258,7 @@ class Model():
         self.model.load_weights(checkpoint_dir + checkpoint_path + str(self.name))
 
     def predictions(self, test_image):
+        K.set_session(sess)
         return self.model.predict(test_image)
 
 #여기서 result_dict를 통해 db에 결과를 적용시킨다.
@@ -267,7 +267,7 @@ def apply_db(mydb, result_dict):
     for key, value in result_dict.items():
         for idx, product_name in enumerate(class_names):
             if product_name == key:
-                if class_count[idx] - value < 0:
+                if class_counts[idx] - value < 0:
                     return False
 
     #적용시킨다.
