@@ -20,7 +20,6 @@ import cash_db
 table_name = 'cashier'
 mydb = cash_db.MySql(user = 'root', password = 'root', db_name = 'smart_cashier')
 mydb.connect()
-mydb.check_exist_table(table_name = table_name)
 
 #우선 table이 존재하는지 확인한다.
 result = mydb.check_exist_table(table_name)

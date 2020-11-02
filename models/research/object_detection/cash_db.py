@@ -18,11 +18,9 @@ class MySql:
     
     #테이블을 만든다.
     def create_table(self, table_name):
-        if self.table_name == None:
-            print('There is not Table')
-            return
-            
-        sql = "create table " + self.table_name + "(product_name varchar(100) NOT NULL, price INT UNSIGNED NOT NULL, product_count INT NOT NULL, PRIMARY KEY(product_name));"
+
+        sql = "create table " + table_name + "(product_name varchar(100) NOT NULL, price INT UNSIGNED NOT NULL, product_count INT NOT NULL, PRIMARY KEY(product_name), \
+        update_time TIMESTAMP NOT NULL default NOW());"
         self.table_name = table_name
         self.cursor.execute(sql)
         print('CREATE TABLE COMPLETE!!!!')
@@ -52,7 +50,7 @@ class MySql:
             return
 
         sql = "UPDATE " + self.table_name
-        sql += " SET product_count = %s"
+        sql += " SET product_count = %s, update_time = NOW()"
         sql += " WHERE product_name = %s"
 
         self.cursor.execute(sql, (product_count, product_name))
