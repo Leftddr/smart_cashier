@@ -204,6 +204,11 @@ def calculate_price(mydb):
         #미래에 server에서 사용한다.
         result_dict[class_names[index]] = count
     
+    if apply_db(mydb, result_dict) == False:
+        print('Cannot Apply Because Product count is not enough')
+        for key, value in result_dict.items():
+            result_dict[key] = -1
+    
     with open("product_file.json", "w") as json_file:
         json.dump(result_dict, json_file)
     
@@ -258,11 +263,19 @@ class Model():
 
 #여기서 result_dict를 통해 db에 결과를 적용시킨다.
 def apply_db(mydb, result_dict):
+    #우선 count가 0으로 안떨어지는지 확인한다.
+    for key, value in result_dict.items():
+        for idx, product_name in enumerate(class_names):
+            if product_name == key:
+                if class_count[idx] - value < 0:
+                    return False
+
+    #적용시킨다.
     for key, value in result_dict.items():
         for idx, product_name in enumerate(class_names):
             if product_name == key:
                 mydb.apply_result_db(key, class_counts[idx] - value)
-
+    return True
 '''
 if __name__ == "__main__":
     load_img_size()
