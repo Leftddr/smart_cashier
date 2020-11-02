@@ -12,6 +12,7 @@ import os.path
 import time
 import cv2
 from tensorflow.compat.v1.keras import backend as K
+import cash_db
 
 #데이터 폴더의 이미지를 LOADING 한다.
 data_folder = "./test_image/"
@@ -33,14 +34,9 @@ final_result_labels = []
 final_result_count = []
 
 #우리가 분류해야될 물품의 목록을 모아놓는다.
-class_names = [
-    'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy', 'BlackCap', 'CanBeer', 'doritos',
-    'Glasses', 'lighter', 'mountaindew', 'pepsi', 'Spoon',  'tobacco', 'WhiteCap', 'note'
-]
+class_names = []
 
-class_prices = [
-    1000, 800, 1500, 6000, 1000, 1500, 800, 800, 25000, 2000, 1500, 50000, 4000, 1000, 1000, 1000, 1500, 30000, 2000
-]
+class_prices = []
 
 test_names = [
     'testsetA',
@@ -56,6 +52,16 @@ model = []
 final_model = None
 #각 훈련 집합마다 accuracy를 측정하여 가장 높은 정확도를 가지는 모델을 가지고 있는다.
 global_accuracy = 0.0
+
+#db에 있는 물품을 끌어올린 후에 다시 훈련시키기 위해
+mydb = cash_db.MySql(user = 'root', password = 'root', db_name = 'smart_cashier')
+mydb.connect()
+result = mydb.select_all()
+for data in result:
+    class_names.append(data[0])
+    class_prices.append(data[1])
+#여기서 끝
+mydb.close_db()
 
 #class_names의 list를 0, 1, 2.... 숫자 label로 바꾼다
 def list_to_dictionary():

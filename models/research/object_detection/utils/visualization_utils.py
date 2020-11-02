@@ -405,7 +405,11 @@ def visualize_boxes_and_labels_on_image_array(image,
                                               #test_number를 reset할지 결정한다.
                                               reset_test_number=False,
                                               #마지막에 결정을 해야하기 때문에 넣어놓는다.
-                                              end_num=10):
+                                              end_num=10,
+                                              class_names = None,
+                                              class_prices = None,
+                                              class_counts = None,
+                                              mydb = None):
   #분류기가 아닌 사물 전체를 인식하기 위해 min_score_thresh를 올린다.
   """Overlay labeled boxes on an image with formatted scores and label names.
 
@@ -453,6 +457,11 @@ def visualize_boxes_and_labels_on_image_array(image,
   if reset_test_number == True:
     TEST_NUMBER = 0
     IMAGE_NUM = 0
+  
+  #여기서 db에서 끌어올렸던 상품 이름과 가격을 적용시킨다.
+  kt.class_names = class_names
+  kt.class_prices = class_prices
+  kt.class_counts = class_counts
 
   box_to_display_str_map = collections.defaultdict(list)
   box_to_color_map = collections.defaultdict(str)
@@ -557,7 +566,8 @@ def visualize_boxes_and_labels_on_image_array(image,
     #투표를 위한 코드 및 계산 직전 사용 코드
     kt.prev_calculate_price()
     #최종 계산을 위한 코드
-    kt.calculate_price()
+    #db에 적용시키기 위해 db를 넘긴다.
+    kt.calculate_price(mydb)
 
   return image
 

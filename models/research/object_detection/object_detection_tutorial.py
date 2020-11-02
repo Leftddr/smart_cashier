@@ -11,7 +11,36 @@ import sys
 import tarfile
 import tensorflow as tf
 import cv2
- 
+#내가 만든 database를 import한다.
+import cash_db
+
+'''
+여기부터는 db를 적용시키기 위한 코드
+'''
+table_name = 'cashier'
+mydb = cash_db.MySql(user = 'root', password = 'root', db_name = 'smart_cashier')
+mydb.connect()
+mydb.check_exist_table(table_name = table_name)
+
+#우선 table이 존재하는지 확인한다.
+result = mydb.check_exist_table(table_name)
+if result == 0:
+    mydb.create_table(table_name = table_name)
+
+#모든 class_names과 price를 보내준다 list로써 keras_test에 보내준다.
+class_names = []
+class_prices = []
+#class_count는 결과를 db에 저장할 때 유용하다
+class_counts = []
+result = mydb.select_all()
+for product_data in result:
+    class_names.append(product_data[0])
+    class_prices.append(product_data[1])
+    class_counts.append(product_data[2])
+print(class_names)
+'''
+이 파일에서는 여기까지 적용가능하다
+'''
 # This is needed since the notebook is stored in the object_detection folder.
 sys.path.append("..")
  
@@ -112,7 +141,11 @@ with detection_graph.as_default():
                                 use_normalized_coordinates=True,
                                 line_thickness=8,
                                 reset_test_number=reset_test_number,
-                                end_num=int(key))
+                                end_num=int(key),
+                                class_names = class_names,
+                                class_prices = class_prices,
+                                class_counts = class_counts,
+                                mydb = mydb)
                         
                         cv2.imshow('my webcam', image)
                         
@@ -120,4 +153,13 @@ with detection_graph.as_default():
                             break  # esc to quit
 
                 cv2.destroyAllWindows()
+                #다시 상품의 개수를 카운트 한다.
+                class_counts = []
+                result = mydb.select_all()
+                for product_data in result:
+                    class_counts.append(product_data[2])
                 break
+            
+
+mydb.close_db()
+

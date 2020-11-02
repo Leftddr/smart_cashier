@@ -44,6 +44,8 @@ class_prices = [
     1000, 800, 1500, 6000, 1000, 1500, 800, 800, 25000, 2000, 1500, 50000, 4000, 1000, 1000, 1000, 1500, 30000, 2000
 ]
 
+class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+
 #test이미지의 저장된 이름
 test_names = [
     'testset',
@@ -189,7 +191,7 @@ def prev_calculate_price():
     result_labels = []
     result_labels_set = []
 
-def calculate_price():
+def calculate_price(mydb):
     global final_result_labels
     global final_result_count
 
@@ -254,11 +256,19 @@ class Model():
     def predictions(self, test_image):
         return self.model.predict(test_image)
 
+#여기서 result_dict를 통해 db에 결과를 적용시킨다.
+def apply_db(mydb, result_dict):
+    for key, value in result_dict.items():
+        for idx, product_name in enumerate(class_names):
+            if product_name == key:
+                mydb.apply_result_db(key, class_counts[idx] - value)
+
+'''
 if __name__ == "__main__":
     load_img_size()
     load_test_img(0)
     load_model()
     output_result()
-
+'''
 
 
