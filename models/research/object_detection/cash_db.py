@@ -103,10 +103,12 @@ class MySql:
         self.cursor.execute(sql, (product_name))
         result = self.cursor.fetchall()
         #가격을 돌려준다.
-        result = list(result)
+        print(result)
         if len(result) <= 0:
             return len(result)
-        return result[1]
+        
+        price = [item[1] for idx, item in enumerate(result) if idx == 0]
+        return
 
     def close_db(self):
         print('CLOSE THE CURSOR')
