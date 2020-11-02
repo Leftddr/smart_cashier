@@ -95,6 +95,18 @@ class MySql:
 
         self.cursor.execute(sql)
         return self.cursor.fetchall()
+    
+    def select_price(self, product_name):
+        sql = "SELECT * FROM " + self.table_name
+        sql += " WHERE product_name = %s"
+
+        self.cursor.execute(sql, (product_name))
+        result = self.cursor.fetchall()
+        #가격을 돌려준다.
+        result = list(result)
+        if len(result) <= 0:
+            return len(result)
+        return result[1]
 
     def close_db(self):
         print('CLOSE THE CURSOR')

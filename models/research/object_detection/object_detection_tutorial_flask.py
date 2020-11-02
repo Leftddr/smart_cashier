@@ -60,6 +60,10 @@ def load_from_db():
         class_prices.append(product_data[1])
         class_counts.append(product_data[2])
 
+#상품 가격을 돌려준다.
+def return_price(product_name):
+    return mydb.select_price(product_name)
+
 def init_program():
     global category_index
     global detection_graph
