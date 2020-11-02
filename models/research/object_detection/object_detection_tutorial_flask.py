@@ -123,7 +123,7 @@ def get_abs_path():
     print('--------------------' + path + '--------------------')
     return path
 
-def calculate():
+def calculate(bool_load):
     global mydb
     global category_index
     global class_names
@@ -132,6 +132,10 @@ def calculate():
     global detection_graph
     path_test_folder = get_abs_path()
     TEST_FOLDER = "testset"
+
+    #db에 변화가 있을시 실행
+    if bool_load == True:
+        load_from_db()
     with detection_graph.as_default():
         with tf.device("/gpu:0"):
             with tf.compat.v1.Session(graph=detection_graph) as sess:
