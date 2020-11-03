@@ -16,6 +16,7 @@ class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 
 
 mydb = cash_db.MySql(user = 'root', password = 'root', db_name = 'smart_cashier')
 mydb.connect()
+mydb.create_table('cashier')
 
 for idx in range(0, len(class_names)):
     res = mydb.check_exist_data(class_names[idx])
