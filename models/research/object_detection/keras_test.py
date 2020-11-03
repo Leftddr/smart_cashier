@@ -229,11 +229,11 @@ class Model():
     
     def make_model(self, drop_out = .25):
         self.model = keras.Sequential([
-            Conv2D(32, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
+            Conv2D(16, kernel_size = (3, 3), padding = 'same', input_shape = (width, height, 3), activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
-            Conv2D(64, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
+            Conv2D(32, kernel_size = (3, 3), padding = 'same', activation = tf.nn.relu),
             MaxPooling2D(pool_size = (2, 2)),
             Dropout(drop_out),
 
