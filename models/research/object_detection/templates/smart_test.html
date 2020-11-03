@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Document</title>
+   <style>
+      ul{list-style-type: none; float: left; margin-left: 20px;}
+   </style>
+</head>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+<select id="selGoods" name="selGoods" style="height:40px;">
+</select>
+<button id="btnAddGoods" style="height:40px;">추가</button>
+</br>
+</br>
+
+<div id="container">
+   
+</div>
+
+</br>
+<div style="position: absolute; right:20px; bottom:20px;">
+요금합계(won):<input id="goodsTotAmt" name="totAmt" value=0></br>
+</div>
+<script>
+
+$(function() {
+   console.log("ready!");
+});
+
+function Goods(){
+    //json 배열[{goodsId:goodsId, goodsNm:goodsNm, amt:amt},{...},{...}]
+    this.arrAllGoods = new Array();//상품 목록
+    this.arrSelGoods = new Array();//선택한 상품 목록      
+    var p = this;
+
+    //처음
+    /*{% for key, value in result.items() %}
+        for(var j=0; j<p.arrAllGoods.length; j++){
+            if(p.arrAllGoods[j].goodsId == {{key}} ){
+                p.appendChoiceDiv(p.arrAllGoods[j]);
+                break;
+            }
+        }
+    {% endfor %}*/
+    
+    //상품 추가 시
+    this.select = function(trgtGoodsId){
+        var selectedIndex = -1;
+        
+        //전체 목록 배열에서 검색하여 goodsId가 없다면 선택 목록에 push후 container안에 그려준다.
+        //선택 목록에서 검색
+        for (var i=0; i<p.arrSelGoods.length; i++){
+            if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+                selectedIndex = i;
+                break;
+            }
+        }
+        //선택목록에 없을 경우 추가. 잇을경우 얼럿.
+        if(selectedIndex < 0){
+            //전체목록에서 선택 추가해줌.
+            for(var j=0;j<p.arrAllGoods.length;j++){
+                if(p.arrAllGoods[j].goodsId==trgtGoodsId){
+                    p.arrSelGoods.push(p.arrAllGoods[j]);
+                    p.arrSelGoods[p.arrSelGoods.length-1].cnt = 0;//무조건 개수 초기화
+                    p.appendChoiceDiv(p.arrAllGoods[j]);
+                    break;
+                }
+            }
+        }
+        else {
+            alert("이미 추가한 상품입니다.");
+        }
+        p.afterProc();
+    }
+    
+    //상품 제거 시
+    this.deselect = function(trgtGoodsId){
+        var selectedIndex = -1;
+        
+        //배열에서 검색.
+        for(var i=0;i<p.arrSelGoods.length;i++){
+            
+            if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+            p.removeChoiceDiv(p.arrSelGoods[i]);
+            p.arrSelGoods.splice(i,1);
+            break;
+            }
+        }
+        p.afterProc();
+    }
+    
+    this.appendChoiceDiv = function(prmtObj){
+        var innerHtml = "";
+
+        innerHtml += '<div id="div_'+prmtObj.goodsId+'">';         
+        innerHtml += '<ul>';
+        innerHtml += '   <li>'+prmtObj.goodsNm+'</li>';
+        innerHtml += '   <li>'+prmtObj.goodsUnprc+'원</li>';
+        //innerHtml += '   <li><img src="'+prmtObj.goodsimage+'" hight=200 width=200/></li>';
+        innerHtml += '   <li><img src="{{ url_for('static', filename='+prmtObj.goodsimage+')}}" hight=200 width=200/></li>';
+        innerHtml += '   <li>개수:<input type="text" id="input_cnt_'+prmtObj.goodsId+'" name="" value="0"/>'
+        innerHtml += '   <li>가격:<input type="text" disabled id="input_sumAmt_'+prmtObj.goodsId+'" name="" value="0"/>'
+        innerHtml += '   <li><button type="button" id="" class="add" name="" onclick="goods.minus(\''+prmtObj.goodsId+'\');"> - </button></li>';
+        innerHtml += '   <li><button type="button" id="" class="remove" name="" onclick="goods.plus(\''+prmtObj.goodsId+'\');"> + </button></li>';
+        innerHtml += '   <li><button type="button" id="" class="remove" name="" onclick="goods.deselect(\''+prmtObj.goodsId+'\');"> 제거 </button></li>';
+        innerHtml += '</ul>';
+        innerHtml += '</div>';      
+        $('#container').append(innerHtml);
+    }
+    
+    this.removeChoiceDiv = function(prmtObj){
+        $("#div_"+prmtObj.goodsId).remove();
+    }
+    
+    this.plus = function(trgtGoodsId){
+        for(var i=0;i<p.arrSelGoods.length;i++){
+            if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+                p.arrSelGoods[i].cnt++;
+                break;
+            }
+        }
+        p.afterProc();         
+    }
+    
+    this.minus = function(trgtGoodsId){
+        for(var i=0;i<p.arrSelGoods.length;i++){  
+            if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+                if(p.arrSelGoods[i].cnt==0) break;
+                p.arrSelGoods[i].cnt--;
+                break;
+            }
+        }
+        p.afterProc();         
+    }
+    
+    //계산 후처리.
+    this.afterProc = function(){
+        for(var i=0;i<p.arrSelGoods.length;i++){
+            $('#input_cnt_'+p.arrSelGoods[i].goodsId).val(p.arrSelGoods[i].cnt);
+            $('#input_sumAmt_'+p.arrSelGoods[i].goodsId).val(p.arrSelGoods[i].cnt*p.arrSelGoods[i].goodsUnprc);
+        }
+        
+        var goodsTotAmt = 0;
+        for(var i=0;i<p.arrSelGoods.length;i++){
+            goodsTotAmt += p.arrSelGoods[i].cnt*p.arrSelGoods[i].goodsUnprc;
+        }
+        $('#goodsTotAmt').val(goodsTotAmt);
+    }
+}
+            
+var goods = new Goods();
+//jstl로 전체 상품 목록 미리 세팅
+goods.arrAllGoods.push({goodsId:"blackbean",goodsUnprc:2500,goodsNm:"blackbean",cnt:0, goodsimage:"image\\blackbean.jpeg"});
+goods.arrAllGoods.push({goodsId:"BlackCap",goodsUnprc:12000,goodsNm:"BlackCap",cnt:0, goodsimage:"image\\BlackCap.jpeg"});
+goods.arrAllGoods.push({goodsId:"WhiteCap",goodsUnprc:12000,goodsNm:"WhiteCap",cnt:0, goodsimage:"image\\WhiteCap.jpeg"});
+goods.arrAllGoods.push({goodsId:"CanBeer",goodsUnprc:2500,goodsNm:"CanBeer",cnt:0, goodsimage:"image\\CanBeer.jpeg"});
+goods.arrAllGoods.push({goodsId:"doritos",goodsUnprc:1500,goodsNm:"doritos",cnt:0, goodsimage:"image\\doritos.jpeg"});
+goods.arrAllGoods.push({goodsId:"Glasses",goodsUnprc:30000,goodsNm:"Glasses",cnt:0, goodsimage:"image\\Glasses.jpeg"});
+goods.arrAllGoods.push({goodsId:"herbsalt",goodsUnprc:8000,goodsNm:"herbsalt",cnt:0, goodsimage:"image\\herbsalt.jpeg"});
+goods.arrAllGoods.push({goodsId:"homerun",goodsUnprc:3000,goodsNm:"homerun",cnt:0, goodsimage:"image\\homerun.jpeg"});
+goods.arrAllGoods.push({goodsId:"lighter",goodsUnprc:500,goodsNm:"lighter",cnt:0, goodsimage:"image\\lighter.jpeg"});
+goods.arrAllGoods.push({goodsId:"lion",goodsUnprc:7500,goodsNm:"lion",cnt:0, goodsimage:"image\\lion.jpeg"});
+goods.arrAllGoods.push({goodsId:"mountaindew",goodsUnprc:800,goodsNm:"mountaindew",cnt:0, goodsimage:"image\\mountaindew.jpeg"});
+goods.arrAllGoods.push({goodsId:"narangd",goodsUnprc:800,goodsNm:"narangd",cnt:0, goodsimage:"image\\narangd.jpeg"});
+goods.arrAllGoods.push({goodsId:"note",goodsUnprc:1500,goodsNm:"note",cnt:0, goodsimage:"image\\note.jpeg"});
+goods.arrAllGoods.push({goodsId:"pepsi",goodsUnprc:1300,goodsNm:"pepsi",cnt:0, goodsimage:"image\\pepsi.jpeg"});
+goods.arrAllGoods.push({goodsId:"rice",goodsUnprc:1700,goodsNm:"rice",cnt:0, goodsimage:"rice.jpg"});
+goods.arrAllGoods.push({goodsId:"sixopening",goodsUnprc:1300,goodsNm:"sixopening",cnt:0, goodsimage:"image\\sixopening.jpeg"});
+goods.arrAllGoods.push({goodsId:"skippy",goodsUnprc:4700,goodsNm:"skippy",cnt:0, goodsimage:"image\\skippy.jpeg"});
+goods.arrAllGoods.push({goodsId:"Spoon",goodsUnprc:1800,goodsNm:"Spoon",cnt:0, goodsimage:"image\\Spoon.jpeg"});
+goods.arrAllGoods.push({goodsId:"tobacco",goodsUnprc:4500,goodsNm:"tobacco",cnt:0, goodsimage:"image\\tobacco.jpeg"});
+
+
+//jstl로 셀렉트 박스 옵션 채우기
+$('#selGoods').append('<option id="" value="blackbean">blackbean:2,500원</option>');
+$('#selGoods').append('<option id="" value="BlackCap">BlackCap:12,000원</option>');
+$('#selGoods').append('<option id="" value="WhiteCap">WhiteCap:12,000원</option>');
+$('#selGoods').append('<option id="" value="CanBeer">CanBeer:2,500원</option>');
+$('#selGoods').append('<option id="" value="doritos">doritos:1,500원</option>');
+$('#selGoods').append('<option id="" value="Glasses">Glasses:30,000원</option>');
+$('#selGoods').append('<option id="" value="herbsalt">herbsalt:8,000원</option>');
+$('#selGoods').append('<option id="" value="homerun">homerun:3,000원</option>');
+$('#selGoods').append('<option id="" value="lighter">lighter:500원</option>');
+$('#selGoods').append('<option id="" value="lion">lion:7,500원</option>');
+$('#selGoods').append('<option id="" value="mountaindew">mountaindew:800원</option>');
+$('#selGoods').append('<option id="" value="narangd">narangd:800원</option>');
+$('#selGoods').append('<option id="" value="note">note:1,500원</option>');
+$('#selGoods').append('<option id="" value="pepsi">pepsi:1,300원</option>');
+$('#selGoods').append('<option id="" value="rice">rice:1,700원</option>');
+$('#selGoods').append('<option id="" value="sixopening">sixopening:1,300원</option>');
+$('#selGoods').append('<option id="" value="skippy">skippy:4,700원</option>');
+$('#selGoods').append('<option id="" value="Spoon">Spoon:1,800원</option>');
+$('#selGoods').append('<option id="" value="tobacco">tobacco:4500원</option>');
+
+
+$('#btnAddGoods').on('click',function(){
+    //console.log($('#selGoods option:selected').val());
+    goods.select($('#selGoods option:selected').val());
+});
+   
+</script>
+
+<body>
+    <button onclick="openTextFile()">Open</button>
+    <div id="output">...</div>
+   
+</body>
+</html>

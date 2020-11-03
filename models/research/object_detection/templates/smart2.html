@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		ul{list-style-type: none; float: left; margin-left: 20px;}
+	</style>
+</head>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+<select id="selGoods" name="selGoods" style="height:40px;">
+</select>
+<button id="btnAddGoods" style="height:40px;">추가</button>
+</br>
+</br>
+
+<div id="container">
+	
+</div>
+
+</br>
+<div style="position: absolute; right:20px; bottom:20px;">
+요금합계(won):<input id="goodsTotAmt" name="totAmt" value=0></br>
+</div>
+<script>
+    // function openTextFile() {
+    // var input = document.createElement("input");
+    // input.type = "file";
+    // input.accept = "text/plain"; // 확장자가 xxx, yyy 일때, ".xxx, .yyy"
+    // input.onchange = function (event) {
+    //     processFile(event.target.files[0]);
+    // };
+    // input.click();
+    // }
+    // function processFile(file) {
+    // var reader = new FileReader();
+    // reader.onload = function () {
+    //     output.innerText = reader.result;
+    // };
+    // reader.readAsText(file, /* optional */ "euc-kr");
+    // }
+
+$(function() {
+	console.log("ready!");
+});
+
+	function Goods(){
+		//json 배열[{goodsId:goodsId, goodsNm:goodsNm, amt:amt},{...},{...}]
+		this.arrAllGoods = new Array();//상품 목록
+		this.arrSelGoods = new Array();//선택한 상품 목록
+		
+		var p = this;
+		
+		//상품 추가 시
+		this.select = function (trgtGoodsId){
+			
+			var selectedIndex = -1;
+			//전체 목록 배열에서 검색하여 goodsId가 없다면 선택 목록에 push후 container안에 그려준다.
+			
+			//선택 목록에서 검색
+			for(var i=0;i<p.arrSelGoods.length;i++){
+				
+				if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+					selectedIndex = i;
+					break;
+				}
+			}
+			
+			if(selectedIndex<0){//선택목록에 없을 경우 추가. 잇을경우 얼럿.
+				//전체목록에서 선택 추가해줌.
+				for(var j=0;j<p.arrAllGoods.length;j++){
+					
+					if(p.arrAllGoods[j].goodsId==trgtGoodsId){
+						p.arrSelGoods.push(p.arrAllGoods[j]);
+						p.arrSelGoods[p.arrSelGoods.length-1].cnt = 0;//무조건 개수 초기화
+						p.appendChoiceDiv(p.arrAllGoods[j]);
+						break;
+					}
+				}
+			}else{
+				alert("이미 추가한 상품입니다.");
+			}
+			p.afterProc();
+		}
+		
+		//상품 제거 시
+		this.deselect = function (trgtGoodsId){
+			
+			var selectedIndex = -1;
+			
+			//배열에서 검색.
+			for(var i=0;i<p.arrSelGoods.length;i++){
+				
+				if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+					p.removeChoiceDiv(p.arrSelGoods[i]);
+					p.arrSelGoods.splice(i,1);
+					break;
+				}
+			}
+			p.afterProc();
+		}
+		
+		this.appendChoiceDiv = function(prmtObj){
+			
+			var innerHtml = "";
+			innerHtml += '<div id="div_'+prmtObj.goodsId+'">';			
+			innerHtml += '<ul>';
+			//innerHtml += '  <li>'+prmtObj.goodsimage+'</li>';
+			innerHtml += '	<li>'+prmtObj.goodsNm+'</li>';
+			innerHtml += '	<li>'+prmtObj.goodsUnprc+'원</li>';
+			innerHtml += '	<li>개수:<input type="text" id="input_cnt_'+prmtObj.goodsId+'" name="" value="0"/>'
+			innerHtml += '	<li>가격:<input type="text" disabled id="input_sumAmt_'+prmtObj.goodsId+'" name="" value="0"/>'
+			innerHtml += '	<li><button type="button" id="" class="add" name="" onclick="goods.minus(\''+prmtObj.goodsId+'\');">-</button></li>';
+			innerHtml += '	<li><button type="button" id="" class="remove" name="" onclick="goods.plus(\''+prmtObj.goodsId+'\');">+</button></li>';
+			innerHtml += '	<li><button type="button" id="" class="remove" name="" onclick="goods.deselect(\''+prmtObj.goodsId+'\');">제거</button></li>';
+			innerHtml += '</ul>';
+			innerHtml += '</div>';		
+			$('#container').append(innerHtml);	
+		}
+		
+		this.removeChoiceDiv = function(prmtObj){
+			$("#div_"+prmtObj.goodsId).remove();
+		}
+		this.plus = function (trgtGoodsId){
+			
+			for(var i=0;i<p.arrSelGoods.length;i++){		
+					if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+						p.arrSelGoods[i].cnt++;
+						break;
+					}
+			}
+			p.afterProc();			
+		}
+		
+		this.minus = function (trgtGoodsId){
+			
+			for(var i=0;i<p.arrSelGoods.length;i++){
+					
+					if(p.arrSelGoods[i].goodsId==trgtGoodsId){
+						if(p.arrSelGoods[i].cnt==0) break;
+						p.arrSelGoods[i].cnt--;
+						break;
+					}
+			}
+			p.afterProc();			
+		}
+		
+		//계산 후처리.
+		this.afterProc = function (){
+			for(var i=0;i<p.arrSelGoods.length;i++){
+				$('#input_cnt_'+p.arrSelGoods[i].goodsId).val(p.arrSelGoods[i].cnt);
+				$('#input_sumAmt_'+p.arrSelGoods[i].goodsId).val(p.arrSelGoods[i].cnt*p.arrSelGoods[i].goodsUnprc);
+			}
+			
+			var goodsTotAmt = 0;
+			for(var i=0;i<p.arrSelGoods.length;i++){
+				goodsTotAmt += p.arrSelGoods[i].cnt*p.arrSelGoods[i].goodsUnprc;
+			}
+			$('#goodsTotAmt').val(goodsTotAmt);	
+		}
+	}
+				
+	var goods = new Goods();
+	var images = new Image();
+	images[0] = "doritos.jpeg";
+	//jstl로 전체 상품 목록 미리 세팅
+	goods.arrAllGoods.push({goodsId:"G010108002002001",goodsUnprc:2500,goodsNm:"blackbean",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002002",goodsUnprc:12000,goodsNm:"BlackCap",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002003",goodsUnprc:12000,goodsNm:"WhiteCap",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002004",goodsUnprc:2500,goodsNm:"CanBeer",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002005",goodsUnprc:1500,goodsNm:"doritos",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002006",goodsUnprc:30000,goodsNm:"Glasses",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002007",goodsUnprc:8000,goodsNm:"herbsalt",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002008",goodsUnprc:3000,goodsNm:"homerun",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002009",goodsUnprc:500,goodsNm:"lighter",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002010",goodsUnprc:7500,goodsNm:"lion",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002011",goodsUnprc:800,goodsNm:"mountaindew",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002012",goodsUnprc:800,goodsNm:"narangd",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002013",goodsUnprc:1500,goodsNm:"note",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002014",goodsUnprc:1300,goodsNm:"pepsi",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002015",goodsUnprc:1700,goodsNm:"rice",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002016",goodsUnprc:1300,goodsNm:"sixopening",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002017",goodsUnprc:4700,goodsNm:"skippy",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002018",goodsUnprc:1800,goodsNm:"Spoon",cnt:0});
+	goods.arrAllGoods.push({goodsId:"G010108002002019",goodsUnprc:4500,goodsNm:"tobacco",cnt:0});
+	
+	//jstl로 셀렉트 박스 옵션 채우기
+	$('#selGoods').append('<option id="" value="G010108002002001">blackbean:2,500원</option>');
+    $('#selGoods').append('<option id="" value="G010108002002002">BlackCap:12,000원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002003">WhiteCap:12,000원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002004">CanBeer:2,500원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002005">doritos:1,500원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002006">Glasses:30,000원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002007">herbsalt:8,000원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002008">homerun:3,000원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002009">lighter:500원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002010">lion:7,500원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002011">mountaindew:800원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002012">narangd:800원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002013">note:1,500원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002014">pepsi:1,300원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002015">rice:1,700원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002016">sixopening:1,300원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002017">skippy:4,700원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002018">Spoon:1,800원</option>');
+	$('#selGoods').append('<option id="" value="G010108002002019">tobacco:4500원</option>');
+
+	$('#btnAddGoods').on('click',function(){
+		//console.log($('#selGoods option:selected').val());
+		goods.select($('#selGoods option:selected').val());
+	});
+	
+</script>
+
+<body>
+    <button onclick="openTextFile()">Open</button>
+	<div id="output">...</div>
+	
+</body>
+</html>
