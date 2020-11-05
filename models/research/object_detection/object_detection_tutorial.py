@@ -48,7 +48,7 @@ from utils import visualization_utils as vis_util
 import shutil
 
 #test_path_folder 경로를 적는다.
-path_test_folder = "C:/Users/lg/Desktop/receive/models/research/object_detection/"
+path_test_folder = get_abs_path()
 TEST_FOLDER = "testset"
 
 tf.compat.v1.reset_default_graph()
@@ -161,4 +161,20 @@ with detection_graph.as_default():
             
 
 mydb.close_db()
+#경로 설정 함수
+#민준, 성준 컴퓨터에 맞는 경로 설정
+def get_abs_path():
+  os_name = platform.system()
+  path = os.path.abspath(__file__)
+    
+  if os_name == 'Windows':
+    split_path = path.split('\\')
+  else:
+    split_path = path.split('/')
+    
+  path = ""
+  for idx in range(0, len(split_path) - 2):
+    path += split_path[idx] + '/'
+  print('--------------------' + path + '--------------------')
+  return path
 
