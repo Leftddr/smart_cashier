@@ -43,16 +43,28 @@ final_result_count = []
 dict_for_result = {}
 
 #우리가 분류해야될 물품의 목록을 모아놓는다.
+'''
 class_names = [
     'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy', 'BlackCap', 'CanBeer', 'doritos',
      'lighter', 'mountaindew', 'pepsi', 'Spoon',  'tobacco', 'WhiteCap', 'note'
 ]
 
 class_prices = [
-    1000, 800, 1500, 6000, 1000, 1500, 800, 800, 25000, 2000, 1500, 4000, 1000, 1000, 1000, 1500, 30000, 2000
+    20000, 50000, 35000, 20000, 10000, 170000, 50000, 40000, 30000, 10000, 11200, 10000, 13300, 12000, 13000, 14000, 20000, 42000, 24000, 23000
 ]
 
-class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+'''
+
+class_names = [
+    'bagepant', 'black', 'blackpant', 'bluepant', 'brown', 'brownpant', 'green', 'greenpant', 'kokky', 'kokkypant',
+    'mint', 'nam', 'orange', 'orangepant', 'pink', 'purplepant', 'red', 'redpant', 'yellow', 'yellowpant']
+
+class_prices = [
+    20000, 50000, 35000, 20000, 10000, 170000, 50000, 40000, 30000, 10000, 11200, 10000, 13300, 12000, 13000, 14000, 20000, 42000, 24000, 23000
+]
+
+class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
 
 #test이미지의 저장된 이름
 test_names = [
@@ -506,7 +518,6 @@ class Model():
             Dropout(drop_out),
 
             Flatten(),
-            BatchNormalization(axis = 1),
             Dense(64, activation = tf.nn.relu),
             Dropout(drop_out),
             Dense(self.num_classes, activation = tf.nn.softmax)
@@ -515,7 +526,7 @@ class Model():
     def model_compile(self):
         #모델의 shape를 그 shape대로 compile한다.
         if self.model == None:
-            print('There is no model')
+            print('There is no model')  파 초 빨, 초 빨 파, -> 0~1
             return
         
         self.model.compile(
