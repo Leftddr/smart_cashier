@@ -23,7 +23,7 @@ tf.compat.v1.disable_eager_execution()
 #데이터 폴더의 이미지를 LOADING 한다.
 train_data_folder = "./train_image/"
 test_data_folder = "./test_image/"
-MINIMUM_TRAIN_IMAGE_NUM = 700
+MINIMUM_TRAIN_IMAGE_NUM = 300
 MINIMUM_TEST_IMAGE_NUM = 1
 
 #훈련중인 모델을 저장할 경로와 파일 이름
@@ -233,6 +233,17 @@ def data_shuffle_test():
     test_images = test_images[for_shuffle]
     test_labels = test_labels[for_shuffle]
 
+#batch를 발생시키기 위한 코드
+def generate_batches(valid, data_set_len):
+    global batch_size
+    global train_images
+    global train_labels
+
+    for train in range(data_set_len):
+        if train == valid:
+            continue
+        yield (train_images[train * batch_size : (train + 1) * batch_size], train_labels[train * batch_size : (train + 1) * batch_size])
+
 #train_data, validate_data, test_data를 random 하게 나눈다.
 #밑에 주석처리 해놓은 함수들은 gpu memory 용량이 클때 사용할 것
 '''
@@ -311,8 +322,9 @@ def split_data_and_train_validate(train_images, train_labels):
                 #여기서는 한번에 하나씩 보내버린다.
                     train_model(train_images[train * batch_size : (train + 1) * batch_size], train_labels[train * batch_size : (train + 1) * batch_size])
         '''
-        
 
+        #gen = generate_batches(valid, data_set_len)
+        
         #train 함수 호출
         print('------------모델링 시작---------------')
         train_model(train_data_set, train_data_label)
@@ -476,6 +488,7 @@ class Model():
     global epochs
     global checkpoint_dir
     global checkpoint_path
+    global data_set_len
 
     def __init__(self, name):
         self.name = name
@@ -536,9 +549,19 @@ class Model():
                     #내가 던져준 데이터에서의 batch_size를 나눠서 학습
                     callbacks = [self.early_stopping]
                 )
+            
             '''
             with tf.device('/gpu:0'):
                 self.model.train_on_batch(train_images, train_labels)
+            '''
+            '''
+            with tf.device('/gpu:0'):
+                self.history = self.model.fit_generator(
+                    generator = gen,
+                    steps_per_epoch = data_set_len, 
+                    epochs = epochs,
+                    callbacks = [self.early_stopping]
+                )
             '''
 
     def predictions(self, test_images):
