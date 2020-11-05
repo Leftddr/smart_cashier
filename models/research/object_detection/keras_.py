@@ -4,7 +4,7 @@ from tensorflow.compat.v1.keras import utils
 from tensorflow.compat.v1.keras import layers
 from tensorflow.compat.v1.keras import datasets
 from tensorflow.compat.v1.keras.callbacks import EarlyStopping
-from tensorflow.compat.v1.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.compat.v1.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL.Image as pil
@@ -15,12 +15,15 @@ from tensorflow.compat.v1.keras import backend as K
 import copy
 #import cash_db
 
+gpus = tf.compat.v1.config.experimental.list_physical_devices('GPU')
+tf.compat.v1.config.experimental.set_memory_growth(gpus[0], True)
+
 tf.compat.v1.disable_eager_execution()
 
 #데이터 폴더의 이미지를 LOADING 한다.
 train_data_folder = "./train_image/"
 test_data_folder = "./test_image/"
-MINIMUM_TRAIN_IMAGE_NUM = 501
+MINIMUM_TRAIN_IMAGE_NUM = 1000
 MINIMUM_TEST_IMAGE_NUM = 1
 
 #훈련중인 모델을 저장할 경로와 파일 이름
@@ -58,7 +61,7 @@ test_names = [
 
 dict_class_names = {}
 
-batch_size = 1000
+batch_size = 6000
 num_classes = len(class_names)
 epochs = 10
 #model = []
@@ -293,35 +296,24 @@ def split_data_and_train_validate(train_images, train_labels):
         mask[valid * batch_size : (valid + 1) * batch_size] = False
         valid_data = train_images[valid * batch_size : (valid + 1) * batch_size]
         valid_label = train_labels[valid * batch_size : (valid + 1) * batch_size]
-        train_data_set = train_images[mask]
-        train_data_label = train_labels[mask]
+        #train_data_set = train_images[mask]
+        #train_data_label = train_labels[mask]
         print('------------데이터 분류 완료---------------')
         #train data set을 모아놓는다.
-        #모델 만들기
+        #모델 만들기, shape도 같이보낸다.
         make_one_model(train_images[0])
         #epoch만큼 같은 데이터를 계속해서 돌림
-        '''
+        
         for train in range(0, data_set_len):
             if valid == train:
                 continue
             #여기서는 한번에 하나씩 보내버린다.
-            if first == True:
-                train_data_set.append(train_images[train * batch_size : (train + 1) * batch_size]) 
-                train_data_label.extend(train_labels[train * batch_size : (train + 1) * batch_size])
-                first = False
-            else:
-                tmp_data_set = np.array(train_images[train * batch_size : (train + 1) * batch_size])
-                tmp_data_label = np.array(train_labels[train * batch_size : (train + 1) * batch_size])
-                tmp_data_set = np.expand_dims(tmp_data_set, axis = 0)
-                tmp_data_label = np.expand_dims(tmp_data_label, axis = 0)
-                train_data_set.extend(list(tmp_data_set))
-                train_data_label.extend(list(tmp_data_label))
-                print(np.array(train_data_set).shape)
-        '''
+                train_model(train_images[train * batch_size : (train + 1) * batch_size], train_labels[train * batch_size : (train + 1) * batch_size])
+        
 
         #train 함수 호출
         print('------------모델링 시작---------------')
-        train_model(train_data_set, train_data_label)
+        #train_model(train_data_set, train_data_label)
         #validate 함수 호출
         accuracy = validate(valid_data, valid_label)
         #모델의 정확도가 높으면, 이 모델을 저장한다.
@@ -499,6 +491,7 @@ class Model():
             Dropout(drop_out),
 
             Flatten(),
+            BatchNormalization(axis = 1),
             Dense(64, activation = tf.nn.relu),
             Dropout(drop_out),
             Dense(self.num_classes, activation = tf.nn.softmax)
@@ -529,6 +522,7 @@ class Model():
             #self.check_point = tf.compat.v1.keras.callbacks.ModelCheckpoint(filepath = checkpoint_path, save_weights_only = True, verbose = 1, period = 5)
             #gpu로 돌리기 위한 코드
             #코드 실행안되면 tensorflow-gpu 버전에 맞춰 CUDA Toolkit 설치 후 확인
+            '''
             with tf.device('/gpu:0'):
                 self.history = self.model.fit(
                     train_images,
@@ -536,9 +530,13 @@ class Model():
                     epochs = epochs,
                     validation_data = (train_images, train_labels),
                     shuffle = True,
+                    batch_size = 4,
                     #내가 던져준 데이터에서의 batch_size를 나눠서 학습
                     callbacks = [self.early_stopping]
                 )
+            '''
+            with tf.device('/gpu:0'):
+                self.model.train_on_batch(train_images, train_labels)
 
     def predictions(self, test_images):
         #실제 데이터를 입력하여 예측한다.
