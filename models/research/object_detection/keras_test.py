@@ -4,7 +4,7 @@ from tensorflow.compat.v1.keras import utils
 from tensorflow.compat.v1.keras import layers
 from tensorflow.compat.v1.keras import datasets
 from tensorflow.compat.v1.keras.callbacks import EarlyStopping
-from tensorflow.compat.v1.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.compat.v1.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization
 import numpy as np
 import matplotlib.pyplot as plt
 import PIL.Image as pil
@@ -25,25 +25,22 @@ MININUM_TEST_NUM = 10
 #훈련된 weight를 저장한 경로와 파일 이름
 checkpoint_path = "model"
 checkpoint_dir = "./checkpoints/"
-checkpoint_num = 13
+checkpoint_num = 1
 
 #이미지 정보 저장
 width = 0
 height = 0
 
 class_names = [
-    'blackbean', 'herbsalt', 'homerun', 'lion', 'narangd', 'rice', 'sixopening', 'skippy', 'BlackCap', 'CanBeer', 'doritos',
-    'Glasses', 'lighter', 'mountaindew', 'pepsi', 'Spoon',  'tobacco', 'WhiteCap', 'note'
-]
-
-#class의 길이를 정한다.
-num_classes = len(class_names)
+    'bagepant', 'black', 'blackpant', 'bluepant', 'brown', 'brownpant', 'green', 'greenpant', 'kokky', 'kokkypant',
+    'mint', 'nam', 'orange', 'orangepant', 'pink', 'purplepant', 'red', 'redpant', 'yellow', 'yellowpant']
 
 class_prices = [
-    1000, 800, 1500, 6000, 1000, 1500, 800, 800, 25000, 2000, 1500, 50000, 4000, 1000, 1000, 1000, 1500, 30000, 2000
+    20000, 50000, 35000, 20000, 10000, 170000, 50000, 40000, 30000, 10000, 11200, 10000, 13300, 12000, 13000, 14000, 20000, 42000, 24000, 23000
 ]
 
-class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+class_counts = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
+
 
 #test이미지의 저장된 이름
 test_names = [
@@ -102,6 +99,8 @@ def load_model():
     global sess
     
     K.set_session(sess)
+    print('----------------가중치 로드------------------')
+    test_model.clear()
     for idx in range(checkpoint_num):
         md = Model(str(idx))
         md.make_model()
@@ -111,7 +110,7 @@ def load_model():
 
 def output_result():
     global test_model
-    global class_names
+    global class_names                                         
     global result_labels
     global result_labels_set
     global test_images
@@ -127,16 +126,22 @@ def output_result():
         #과자 : 1개, 음료수 : 2개.... 이런식으로 저장한다. (한 test 이미지 당)
         predictions = np.zeros(1 * num_classes).reshape(1, num_classes)
 
+        print('-----------------' + str(len(test_model)) + '-------------------------')
         for idx, md in enumerate(test_model):
             p = md.predictions(test_img)
+            '''
             index = np.argmax(p)
             if p[0][index] < .5:
                 break
+            '''
+            print(p)
             predictions += p
 
         index = np.argmax(predictions)
+        '''
         if predictions[0][index] < qurom:
             continue
+        '''
         #물건 이름을 우선 print해서 출력한다.
         thing_name = class_names[index]
         print(thing_name)
@@ -238,6 +243,7 @@ class Model():
             Dropout(drop_out),
 
             Flatten(),
+            BatchNormalization(axis = 1),
             Dense(64, activation = tf.nn.relu),
             Dropout(drop_out),
             Dense(self.num_classes, activation = tf.nn.softmax)    
